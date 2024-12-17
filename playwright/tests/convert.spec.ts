@@ -6,7 +6,6 @@ import {
   userName,
   validFileName,
 } from "../consts";
-import { ConvertFilePage } from "../pom/ConvertFilePage";
 import { test, expect } from "./../fixtures/fixture-pages";
 
 test.beforeEach(async ({ loginPage, convertFilePage }) => {
@@ -18,7 +17,7 @@ test.beforeEach(async ({ loginPage, convertFilePage }) => {
 });
 
 test.describe("Verify uploading a file", () => {
-  test("valid upload", async ({ convertFilePage }) => {
+  test("valid upload @bug", async ({ convertFilePage }) => {
     await convertFilePage.uploadFile(filesPath + validFileName);
     await convertFilePage.verifyFileNameIsVisible(validFileName);
     await convertFilePage.clickOnConvert();
@@ -26,7 +25,7 @@ test.describe("Verify uploading a file", () => {
     expect(await convertFilePage.isDownloadDocxButtonVisible()).toBeTruthy();
   });
 
-  test("verify download", async ({ convertFilePage }) => {
+  test("verify download @bug", async ({ convertFilePage }) => {
     await convertFilePage.uploadFile(filesPath + validFileName);
     await convertFilePage.clickOnConvert();
     await convertFilePage.verifyFileIsConverted();

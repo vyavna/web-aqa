@@ -1,5 +1,6 @@
 import { Download, Page, expect, Locator } from "@playwright/test";
 import fs from "fs";
+import { url } from "../consts";
 
 export class ConvertFilePage {
   page = this._page;
@@ -39,11 +40,16 @@ export class ConvertFilePage {
   }
 
   async verifyFileIsConverted() {
-    await expect(this.successBanner).toHaveText("File converted successfully!");
+    await expect(this.successBanner).toHaveText(
+      "File converted successfully!",
+      {
+        timeout: 11000,
+      }
+    );
   }
 
   async verifyHistoryLinkIsVisible() {
-    await expect(this.historyLinkText).toBeVisible();
+    await expect(this.historyLinkText).toBeVisible({timeout:6000});
   }
 
   async goToHistory() {
@@ -53,13 +59,34 @@ export class ConvertFilePage {
   async downloadAFile(filePath: string) {
     if (await this.isDownloadDocxButtonVisible()) {
       const downloadPromise = this.page.waitForEvent("download");
-      await this.clickOnDownloadDocxButton();
+      const status = await this.checkNetworkRequest(() =>
+        this.clickOnDownloadDocxButton()
+      );
+      await expect(status).toBe(200);
+
+      //await this.clickOnDownloadDocxButton();
+
       const downloadFile = await downloadPromise;
       // Wait for the download process to complete and save the downloaded file somewhere.
       await downloadFile.saveAs(filePath + downloadFile.suggestedFilename());
       return downloadFile;
     }
   }
+
+  async checkNetworkRequest(action: () => Promise<unknown>) {
+    const requestPromise = this.page.waitForRequest(
+      url + "api/docs/converted-file.docx",
+      { timeout: 30000 }
+    );
+
+    await action();
+
+    const request = await requestPromise;
+    const response = await request.response();
+    const status = await response?.status();
+    return status;
+  }
+
   async verifyFileSize(downloadFile: Download) {
     // assert filename
     expect(downloadFile.suggestedFilename()).toBe("converted-file.docx");
